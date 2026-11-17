@@ -153,7 +153,9 @@ func HandleConnectionEx(
 				if err != nil {
 					return err
 				}
-				return E.New("socks4: authentication failed, username=", request.Username)
+				// W4-06: the fact only; the caller logs the source address. A name the client sent
+				// is a credential (or a typo of one), and the log goes into problem reports.
+				return E.New("socks4: authentication failed")
 			}
 			handler.NewConnectionEx(auth.ContextWithUser(ctx, request.Username), cachedConn(NewLazyConn(conn, version), reader), source, request.Destination, onClose)
 			return nil
@@ -216,7 +218,9 @@ func HandleConnectionEx(
 				return err
 			}
 			if response.Status != socks5.UsernamePasswordStatusSuccess {
-				return E.New("socks5: authentication failed, username=", usernamePasswordAuthRequest.Username, ", password=", usernamePasswordAuthRequest.Password)
+				// W4-06: neither the name nor the password the client sent (the caller logs the
+				// source address): a wrong password is often the right one mistyped, or an old one.
+				return E.New("socks5: authentication failed")
 			}
 		}
 		var request socks5.Request

@@ -53,15 +53,13 @@ func HandleConnectionEx(
 				if keepAlive {
 					continue
 				}
-				authorization := request.Header.Get("Proxy-Authorization")
-				switch {
-				case username != "":
-					return E.New("http: authentication failed, username=", username, ", password=", password)
-				case authorization != "":
-					return E.New("http: authentication failed, Proxy-Authorization=", authorization)
-				default:
-					return E.New("http: authentication failed, no Proxy-Authorization header")
+				// W4-06: whether credentials came, never what they were (the caller logs the source
+				// address): the name, the password and the raw Proxy-Authorization header are
+				// credentials, or a typo of them, and the log goes into problem reports.
+				if request.Header.Get("Proxy-Authorization") != "" {
+					return E.New("http: authentication failed")
 				}
+				return E.New("http: authentication failed, no Proxy-Authorization header")
 			}
 		}
 
